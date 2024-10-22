@@ -24,7 +24,7 @@ jobs:
     - name: Build with Maven
       run: mvn --batch-mode --file pom.xml -Dmaven.javadoc.skip=true -Dmaven.test.failure.ignore -Dspotbugs.failOnError=false -Dcheckstyle.failOnViolation=false -Dcheckstyle.failsOnError=false clean install
     - name: Upload Maven build artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: bk-jenkins-tfs-plugin
         path: tfs/target/tfs.hpi
