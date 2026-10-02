@@ -280,14 +280,20 @@ public class TeamCollectionConfiguration extends AbstractDescribableImpl<TeamCol
 
         SystemCredentialsProvider.getInstance().getDomainCredentialsMap().put(domain, new ArrayList<Credentials>());
 
-        String credentialsId;
-        StandardUsernamePasswordCredentials newCredential = new UsernamePasswordCredentialsImpl(
-                CredentialsScope.GLOBAL,
-                credentialsId = UUID.randomUUID().toString(),
-                "Generated for " + username,
-                username,
-                password
-        );
+        final String credentialsId = UUID.randomUUID().toString();
+        final StandardUsernamePasswordCredentials newCredential;
+        try {
+            newCredential = new UsernamePasswordCredentialsImpl(
+                    CredentialsScope.GLOBAL,
+                    credentialsId,
+                    "Generated for " + username,
+                    username,
+                    password
+            );
+        } catch (final Descriptor.FormException ex) {
+            // thrown e.g. in FIPS mode when the password does not meet the requirements
+            throw new IllegalArgumentException("Could not create credentials for " + hostName + ": " + ex.getMessage(), ex);
+        }
         SystemCredentialsProvider.getInstance().getDomainCredentialsMap().get(domain).add(newCredential);
 
         try {
