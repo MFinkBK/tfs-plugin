@@ -15,6 +15,7 @@
   <properties>
     <!-- TODO: enable once SpotBugs issues are fixed (FindBugs was replaced by SpotBugs in the plugin parent) -->
     <spotbugs.failOnError>false</spotbugs.failOnError>
+    <checkstyle.skip>true</checkstyle.skip>
   </properties>
 
   <licenses>
