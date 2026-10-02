@@ -41,8 +41,6 @@
 
     <property name="fileExtensions" value="java, properties, xml"/>
 
-    <module name="SuppressionCommentFilter"/>
-
     <!-- Checks that a package-info.java file exists for each package.     -->
     <!-- See http://checkstyle.sf.net/config_javadoc.html#JavadocPackage -->
     <!-- module name="JavadocPackage"/ -->
@@ -81,8 +79,7 @@
 
     <module name="TreeWalker">
 
-        <!-- Allow the SuppressionCommentFilter to work inside the files -->
-        <module name="FileContentsHolder"/>
+        <module name="SuppressionCommentFilter"/>
 
         <!-- Checks for Javadoc comments.                     -->
         <!-- See http://checkstyle.sf.net/config_javadoc.html -->
