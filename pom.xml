@@ -115,17 +115,10 @@
             <!-- Jenkins plugin BOM: manages versions of Jenkins plugins -->
             <dependency>
                 <groupId>io.jenkins.tools.bom</groupId>
-                <artifactId>bom-2.568.1</artifactId>
+                <artifactId>bom-2.568.x</artifactId>
                 <version>7093.v37de7b_4a_8a_4f</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>
-
-            <!-- Your own managed versions -->
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-digester3</artifactId>
-                <version>3.2</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
