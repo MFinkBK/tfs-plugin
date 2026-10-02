@@ -16,7 +16,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-install-plugin</artifactId>
-        <version>2.5.2</version>
+        <version>3.1.3</version>
         <executions>
           <execution>
             <id>install.tfs.sdk.jar.locally</id>
@@ -30,7 +30,6 @@
               <artifactId>com.microsoft.tfs.sdk</artifactId>
               <version>14.0.3</version>
               <packaging>jar</packaging>
-              <generatePom>true</generatePom>
             </configuration>
           </execution>
         </executions>

@@ -1,4 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
@@ -9,12 +9,13 @@
   <artifactId>tfs</artifactId>
   <packaging>hpi</packaging>
   <name>Team Foundation Server Plug-in</name>
-  <version>5.157.2-SNAPSHOT</version>
-  <url>http://wiki.jenkins-ci.org/display/JENKINS/Team+Foundation+Server+Plugin</url>
+  <!-- version is inherited from tfs-parent -->
+  <url>https://github.com/MFinkBK/tfs-plugin</url>
 
   <properties>
-    <!-- TODO: enable once FindBugs issues are fixed -->
-    <findbugs.failOnError>false</findbugs.failOnError>
+    <!-- TODO: enable once SpotBugs issues are fixed (FindBugs was replaced by SpotBugs in the plugin parent) -->
+    <spotbugs.failOnError>false</spotbugs.failOnError>
+    <checkstyle.skip>true</checkstyle.skip>
   </properties>
 
   <licenses>
@@ -28,20 +29,20 @@
         Apache Commons Codec, Apache Commons Logging, Apache HttpClient, Apache Commons Lang, Apache log4j,
         and Apache ServiceMix are licensed by the Apache Foundation under the Apache License, Version 2.0.
       </name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+      <url>https://www.apache.org/licenses/LICENSE-2.0</url>
     </license>
     <license>
       <name>
         The Apache Foundation's Xerces Java Parser project is licensed by the
         Apache Foundation under the Apache License, Version 1.1.
       </name>
-      <url>http://www.apache.org/licenses/LICENSE-1.1</url>
+      <url>https://www.apache.org/licenses/LICENSE-1.1</url>
     </license>
     <license>
       <name>
         The Woodstox XML Processor and the StAX API are licensed by their authors under the Apache License, Version 2.0.
       </name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0</url></license>
+      <url>https://www.apache.org/licenses/LICENSE-2.0</url></license>
     <license>
       <name>This product includes software from the Hypersonic SQL DB http://hsqldb.org/.</name>
       <url>http://www.hsqldb.org/web/hsqlLicense.html</url>
@@ -52,13 +53,12 @@
     </license>
   </licenses>
 
-  <!-- see http://groups.google.com/group/hudson-dev/browse_thread/thread/83e34c639eec470a for the rationale behind this -->
   <build>
     <plugins>
       <plugin>
+        <!-- version managed by the plugin parent -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>2.4</version>
         <configuration>
           <archive>
             <manifest>
@@ -66,13 +66,6 @@
               <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
             </manifest>
           </archive>
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-release-plugin</artifactId>
-        <version>2.5.1</version>
-        <configuration>
-          <goals>deploy</goals>
         </configuration>
       </plugin>
       <plugin>
@@ -84,8 +77,9 @@
         </configuration>
       </plugin>
       <plugin>
+        <!-- version managed by the plugin parent -->
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>${maven-javadoc-plugin.version}</version>
         <executions>
           <execution>
             <id>verify-javadoc</id>
@@ -97,16 +91,9 @@
         </executions>
       </plugin>
       <plugin>
+        <!-- version and JUnit provider managed by the plugin parent -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>${maven-surefire-plugin.version}</version>
-        <dependencies>
-          <dependency>
-            <groupId>org.apache.maven.surefire</groupId>
-            <artifactId>surefire-junit47</artifactId>
-            <version>${maven-surefire-plugin.version}</version>
-          </dependency>
-        </dependencies>
         <configuration>
           <excludedGroups>hudson.plugins.tfs.IntegrationTests</excludedGroups>
         </configuration>
@@ -114,14 +101,14 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>2.17</version>
+        <version>3.6.0</version>
         <executions>
           <execution>
             <id>validate</id>
             <phase>validate</phase>
             <configuration>
               <configLocation>checkstyle.xml</configLocation>
-              <encoding>UTF-8</encoding>
+              <inputEncoding>UTF-8</inputEncoding>
               <consoleOutput>true</consoleOutput>
               <failsOnError>true</failsOnError>
             </configuration>
@@ -145,19 +132,9 @@
       <build>
         <plugins>
           <plugin>
+            <!-- version managed by the plugin parent (released together with surefire) -->
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-failsafe-plugin</artifactId>
-            <!-- failsafe and surefire are the same project and release together
-                 this ensures consistent, correctly working behavior
-             -->
-            <version>${maven-surefire-plugin.version}</version>
-            <dependencies>
-              <dependency>
-                <groupId>org.apache.maven.surefire</groupId>
-                <artifactId>surefire-junit47</artifactId>
-                <version>${maven-surefire-plugin.version}</version>
-              </dependency>
-            </dependencies>
             <executions>
               <execution>
                 <goals>
@@ -181,49 +158,47 @@
   </profiles>
 
   <dependencies>
-
+    <!-- Jenkins plugins: versions come from the Jenkins BOM in tfs-parent -->
     <dependency>
       <!-- We need this plugin for the [current] TfsUserLookup implementation -->
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>mailer</artifactId>
-      <version>1.16</version>
     </dependency>
     <dependency>
       <!-- Used for configuring collections globally -->
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>credentials</artifactId>
-      <version>1.25</version>
     </dependency>
     <dependency>
-      <!-- Used for configuring collections globally -->
       <groupId>org.jenkins-ci.plugins.workflow</groupId>
       <artifactId>workflow-job</artifactId>
-      <version>2.10</version>
     </dependency>
     <dependency>
-      <!-- Used for configuring collections globally -->
       <groupId>org.jenkins-ci.plugins.workflow</groupId>
       <artifactId>workflow-cps</artifactId>
-      <version>2.30</version>
-      <exclusions>
-        <exclusion>
-          <!-- Provided by the core -->
-          <groupId>org.jenkins-ci</groupId>
-          <artifactId>annotation-indexer</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
-      <!-- Used for configuring collections globally, resolves upper bound dependency conflicts in other Pipeline plugins -->
       <groupId>org.jenkins-ci.plugins.workflow</groupId>
       <artifactId>workflow-support</artifactId>
-      <version>2.14</version>
     </dependency>
     <dependency>
       <!-- Used for augmenting Git-related activities, like commit status -->
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>git</artifactId>
-      <version>2.5.2</version>
+    </dependency>
+
+    <!-- Third-party libraries via Jenkins library plugins (shared, kept up to date by the BOM) -->
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>apache-httpcomponents-client-4-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.jenkins.plugins</groupId>
+      <artifactId>gson-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.jenkins.plugins</groupId>
+      <artifactId>json-api</artifactId>
     </dependency>
 
     <dependency>
@@ -231,53 +206,30 @@
       <artifactId>com.microsoft.tfs.sdk</artifactId>
       <version>14.0.3</version>
     </dependency>
+
+    <!-- Test dependencies (JUnit itself comes with jenkins-test-harness from the plugin parent) -->
     <dependency>
-      <groupId>junit</groupId>
+      <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>junit</artifactId>
-      <version>4.13.1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-        <groupId>xmlunit</groupId>
-        <artifactId>xmlunit</artifactId>
-        <version>1.6</version>
-        <scope>test</scope>
+      <!-- version managed by the plugin parent -->
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
-        <groupId>org.mockito</groupId>
-        <artifactId>mockito-core</artifactId>
-        <version>1.10.19</version>
-        <scope>test</scope>
+      <groupId>xmlunit</groupId>
+      <artifactId>xmlunit</artifactId>
+      <version>1.6</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.littleshoot</groupId>
       <artifactId>littleproxy</artifactId>
       <version>1.1.0</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.jenkins-ci.plugins</groupId>
-      <artifactId>junit</artifactId>
-      <version>1.6</version>
-      <scope>test</scope>
-    </dependency>
-    
-    <!-- RM dependencies -->
-    <dependency>
-        <groupId>org.apache.httpcomponents</groupId>
-        <artifactId>httpclient</artifactId>
-        <version>4.5</version>
-        <type>jar</type>
-    </dependency>
-    <dependency>
-        <groupId>com.google.code.gson</groupId>
-        <artifactId>gson</artifactId>
-        <version>2.3.1</version>
-    </dependency>
-    <dependency>
-        <groupId>org.json</groupId>
-        <artifactId>json</artifactId>
-        <version>20090211</version>
     </dependency>
   </dependencies>
 </project>
