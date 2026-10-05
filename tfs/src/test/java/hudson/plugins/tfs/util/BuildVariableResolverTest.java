@@ -13,6 +13,7 @@ import hudson.model.AbstractProject;
 import hudson.model.Computer;
 
 import hudson.model.TaskListener;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -24,17 +25,24 @@ public class BuildVariableResolverTest {
     @Mock private AbstractProject<?, ?> project;
     @Mock private Computer computer;
     @Mock private AbstractBuild build;
+    private AutoCloseable mocks;
 
     @Before public void before() throws Exception {
-        MockitoAnnotations.initMocks(this);
+        mocks = MockitoAnnotations.openMocks(this);
+    }
+
+    @After public void after() throws Exception {
+        if (mocks != null) {
+            mocks.close();
+        }
     }
 
     @Test public void assertConstructorBuildUsesProject() throws IOException, InterruptedException {
         when(build.getProject()).thenReturn(project);
         new BuildVariableResolver(build, computer);
         verify(build).getProject();
-        verifyZeroInteractions(project);
-        verifyZeroInteractions(computer);
+        verifyNoInteractions(project);
+        verifyNoInteractions(computer);
     }
     
     @Test public void assertJobNameIsResolved() {
@@ -42,7 +50,7 @@ public class BuildVariableResolverTest {
 
         BuildVariableResolver resolver = new BuildVariableResolver(project, computer);
         assertEquals("Variable resolution was incorrect", "ThisIsAJob", resolver.resolve("JOB_NAME"));
-        verifyZeroInteractions(computer);
+        verifyNoInteractions(computer);
     }
     
     @Test public void assertJobNameWithoutComputerIsResolved() {
@@ -61,7 +69,7 @@ public class BuildVariableResolverTest {
 
         BuildVariableResolver resolver = new BuildVariableResolver(project, computer);
         assertEquals("Variable resolution was incorrect", "This is an env var", resolver.resolve("ENV_VAR"));
-        verifyZeroInteractions(project);
+        verifyNoInteractions(project);
     }
     
     @Test public void assertComputerUserNameIsResolved() throws Exception {
@@ -72,7 +80,7 @@ public class BuildVariableResolverTest {
 
         BuildVariableResolver resolver = new BuildVariableResolver(project, computer);
         assertEquals("Variable resolution was incorrect", "Other_user", resolver.resolve("USER_NAME"));
-        verifyZeroInteractions(project);
+        verifyNoInteractions(project);
     }
     
     @Test public void assertNodeNameIsResolved() {
@@ -80,7 +88,7 @@ public class BuildVariableResolverTest {
         
         BuildVariableResolver resolver = new BuildVariableResolver(project, computer);
         assertEquals("Variable resolution was incorrect", "AKIRA", resolver.resolve("NODE_NAME"));
-        verifyZeroInteractions(project);
+        verifyNoInteractions(project);
     }
     
     /**
@@ -91,13 +99,13 @@ public class BuildVariableResolverTest {
         
         BuildVariableResolver resolver = new BuildVariableResolver(project, computer);
         assertEquals("Variable resolution was incorrect", "MASTER", resolver.resolve("NODE_NAME"));
-        verifyZeroInteractions(project);
+        verifyNoInteractions(project);
     }
     
     @Test public void assertNoComputeraDoesNotThrowNPEWhenResolvingNodeName() {
         BuildVariableResolver resolver = new BuildVariableResolver(project);
         assertNull("Variable resolution was incorrect", resolver.resolve("NODE_NAME"));
-        verifyZeroInteractions(project);
+        verifyNoInteractions(project);
     }
     
     @Test public void assertBuildEnvVarIsResolved() throws Exception {
@@ -110,6 +118,6 @@ public class BuildVariableResolverTest {
         BuildVariableResolver resolver = new BuildVariableResolver(build, computer);
         assertEquals("Variable resolution was incorrect", "121212", resolver.resolve("BUILD_ID"));
         verify(build).getEnvironment(TaskListener.NULL);
-        verifyZeroInteractions(project);
+        verifyNoInteractions(project);
     }
 }
