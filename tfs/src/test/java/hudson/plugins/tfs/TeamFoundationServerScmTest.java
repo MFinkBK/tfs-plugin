@@ -120,7 +120,7 @@ public class TeamFoundationServerScmTest {
     public void assertWorkspaceNameReplacesJobName() {
         AbstractBuild build = mock(AbstractBuild.class);
         AbstractProject project = mock(AbstractProject.class);
-        when(build.getProject()).thenReturn(project);
+        when(build.getParent()).thenReturn(project);
         when(project.getName()).thenReturn("ThisIsAJob");
 
         TeamFoundationServerScm scm = new TeamFoundationServerScm(null, null, "erik_${JOB_NAME}");
@@ -314,7 +314,7 @@ public class TeamFoundationServerScmTest {
         when(build.getAction(TeamBuildDetailsAction.class)).thenReturn(action);
         TeamFoundationServerScm scm = new TeamFoundationServerScm("serverurl", "projectpath", "WORKSPACE_SAMPLE");
         AbstractProject project = mock(AbstractProject.class);
-        when(build.getProject()).thenReturn(project);
+        when(build.getParent()).thenReturn(project);
         Map<String, String> env = new HashMap<String, String>();
         scm.buildEnvVars(build, env);
 
@@ -331,7 +331,7 @@ public class TeamFoundationServerScmTest {
         TeamFoundationServerScm scm = new TeamFoundationServerScm("serverurl", "projectpath", "WORKSPACE_SAMPLE");
         AbstractBuild build = mock(AbstractBuild.class);
         AbstractProject project = mock(AbstractProject.class);
-        when(build.getProject()).thenReturn(project);
+        when(build.getParent()).thenReturn(project);
         scm.getWorkspaceName(build, mock(Computer.class));
         
         Map<String, String> env = new HashMap<String, String>();
