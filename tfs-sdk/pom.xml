@@ -17,24 +17,48 @@
   <properties>
     <tfs-sdk.version>14.0.3</tfs-sdk.version>
     <shaded.prefix>com.microsoft.tfs.shaded</shaded.prefix>
-    <!-- There is no own code in this module to check -->
+    <!-- The classes in this module are Microsoft's SDK, not our own code: nothing to check -->
     <spotbugs.skip>true</spotbugs.skip>
     <checkstyle.skip>true</checkstyle.skip>
     <maven.javadoc.skip>true</maven.javadoc.skip>
+    <access-modifier-checker.skip>true</access-modifier-checker.skip>
   </properties>
-
-  <dependencies>
-    <!-- The original, signed SDK jar; installed into the local repository by the
-         tfs-sdk-original module, which must be built before this one -->
-    <dependency>
-      <groupId>com.microsoft.tfs.sdk</groupId>
-      <artifactId>com.microsoft.tfs.sdk-original</artifactId>
-      <version>${tfs-sdk.version}</version>
-    </dependency>
-  </dependencies>
 
   <build>
     <plugins>
+      <!-- Unpack the original SDK jar into target/classes, so it becomes this module's own content.
+           The signature files and the original manifest (with its per-file digests) are left out,
+           because the signature becomes invalid once classes are relocated. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>unpack-tfs-sdk</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <unzip src="${project.basedir}/src/com.microsoft.tfs.sdk-${tfs-sdk.version}.jar"
+                       dest="${project.build.outputDirectory}">
+                  <patternset>
+                    <exclude name="META-INF/MANIFEST.MF" />
+                    <exclude name="META-INF/*.SF" />
+                    <exclude name="META-INF/*.RSA" />
+                    <exclude name="META-INF/*.DSA" />
+                    <exclude name="META-INF/*.EC" />
+                  </patternset>
+                </unzip>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Relocate the third-party libraries bundled in the SDK into a private package -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
@@ -46,26 +70,13 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-              <!-- Only repackage the SDK itself, nothing inherited from the parent POM -->
+              <!-- Only this module's own jar (the unpacked SDK), nothing inherited from the parent POM -->
               <artifactSet>
                 <includes>
-                  <include>com.microsoft.tfs.sdk:com.microsoft.tfs.sdk-original</include>
+                  <include>${project.groupId}:${project.artifactId}</include>
                 </includes>
               </artifactSet>
-              <createDependencyReducedPom>true</createDependencyReducedPom>
-              <dependencyReducedPomLocation>${project.build.directory}/dependency-reduced-pom.xml</dependencyReducedPomLocation>
-              <filters>
-                <filter>
-                  <artifact>*:*</artifact>
-                  <excludes>
-                    <!-- The signature becomes invalid when classes are relocated -->
-                    <exclude>META-INF/*.SF</exclude>
-                    <exclude>META-INF/*.RSA</exclude>
-                    <exclude>META-INF/*.DSA</exclude>
-                    <exclude>META-INF/*.EC</exclude>
-                  </excludes>
-                </filter>
-              </filters>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
               <relocations>
                 <relocation>
                   <pattern>com.google.common</pattern>
