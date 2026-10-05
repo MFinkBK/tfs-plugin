@@ -14,7 +14,7 @@ import java.net.URL;
 
 import hudson.util.Secret;
 import org.junit.Test;
-import org.jvnet.hudson.test.Bug;
+import org.jvnet.hudson.test.Issue;
 
 @SuppressWarnings("rawtypes")
 public class TeamSystemWebAccessBrowserTest {
@@ -40,7 +40,7 @@ public class TeamSystemWebAccessBrowserTest {
         assertEquals("The change set link was incorrect", "http://tfs/tfs/coll/_versionControl/changeset/99", actual.toString());
     }
 
-	@Bug(7394)
+	@Issue("JENKINS-7394")
 	@Test
 	public void assertChangeSetLinkWithOnlyServerUrl() throws Exception {
 		TeamSystemWebAccessBrowser browser = new TeamSystemWebAccessBrowser("http://tfs");
@@ -49,7 +49,7 @@ public class TeamSystemWebAccessBrowserTest {
 		assertEquals("The change set link was incorrect", "http://tfs/_versionControl/changeset/99", actual.toString());
 	}
 
-	@Bug(7394)
+	@Issue("JENKINS-7394")
 	@Test
 	public void assertChangeSetLinkWithOnlyServerUrlWithTrailingSlash() throws Exception {
 		TeamSystemWebAccessBrowser browser = new TeamSystemWebAccessBrowser("http://tfs/");

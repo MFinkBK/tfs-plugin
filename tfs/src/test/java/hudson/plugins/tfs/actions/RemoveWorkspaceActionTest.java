@@ -1,7 +1,7 @@
 package hudson.plugins.tfs.actions;
 
 import static org.hamcrest.CoreMatchers.*;
-import static org.mockito.Matchers.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
 
@@ -17,9 +17,16 @@ public class RemoveWorkspaceActionTest {
     @Mock private Server server;        
     @Mock private Workspaces workspaces;
     @Mock private Workspace workspace;
+    private AutoCloseable mocks;
 
     @Before public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
+        mocks = MockitoAnnotations.openMocks(this);
+    }
+
+    @After public void tearDown() throws Exception {
+        if (mocks != null) {
+            mocks.close();
+        }
     }
 
     @Test

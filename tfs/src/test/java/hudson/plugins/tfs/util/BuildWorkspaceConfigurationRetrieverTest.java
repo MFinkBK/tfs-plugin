@@ -15,7 +15,7 @@ import hudson.plugins.tfs.model.WorkspaceConfiguration;
 import hudson.plugins.tfs.util.BuildWorkspaceConfigurationRetriever.BuildWorkspaceConfiguration;
 
 import org.junit.Test;
-import org.jvnet.hudson.test.Bug;
+import org.jvnet.hudson.test.Issue;
 
 @SuppressWarnings("unchecked")
 public class BuildWorkspaceConfigurationRetrieverTest {
@@ -107,7 +107,7 @@ public class BuildWorkspaceConfigurationRetrieverTest {
         verify(build).save();  
     }
     
-    @Bug(8322)
+    @Issue("JENKINS-8322")
     @Test
     public void assertGetLatestConfgiurationOnPreviousDeletedNode() {
         AbstractBuild build = mock(AbstractBuild.class);

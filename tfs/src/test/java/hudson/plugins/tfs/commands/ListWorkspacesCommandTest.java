@@ -13,7 +13,7 @@ import hudson.plugins.tfs.model.Workspace;
 import hudson.remoting.Callable;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.jvnet.hudson.test.Bug;
+import org.jvnet.hudson.test.Issue;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -23,8 +23,8 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.anyString;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -101,7 +101,7 @@ public class ListWorkspacesCommandTest extends AbstractCallableCommandTest {
                     WorkspaceLocation.SERVER
             );
             when(server.getUrl()).thenReturn("http://tfs.invalid:8080/tfs/DefaultCollection/");
-            when(this.vcc.queryWorkspaces(anyString(), anyString(), anyString(), isA(WorkspacePermissions.class)))
+            when(this.vcc.queryWorkspaces(nullable(String.class), nullable(String.class), nullable(String.class), isA(WorkspacePermissions.class)))
                     .thenReturn(workspaces);
             final ListWorkspacesCommand command = new ListWorkspacesCommand(server, null, true) {
                 @Override
@@ -175,7 +175,7 @@ public class ListWorkspacesCommandTest extends AbstractCallableCommandTest {
         assertEquals("The workspace name is incorrect", "Hudson-node lookup", workspace.getName());
     }
 
-    @Bug(4666)
+    @Issue("JENKINS-4666")
     @Test
     public void assertNoIndexOutOfBoundsIsThrown() throws Exception {
 
@@ -189,7 +189,7 @@ public class ListWorkspacesCommandTest extends AbstractCallableCommandTest {
         new ListWorkspacesCommand(mock(Server.class)).parse(reader);
     }
 
-    @Bug(4726)
+    @Issue("JENKINS-4726")
     @Test
     public void assertNoIndexOutOfBoundsIsThrownSecondEdition() throws Exception {
 
