@@ -80,6 +80,8 @@ public class XmlHelper {
 
         pokeValue(doc, xpathExpression, value);
 
+        // keep the XML declaration as it was; otherwise the JDK transformer adds standalone="no"
+        doc.setXmlStandalone(true);
         final Transformer t = TF.newTransformer();
         final DOMSource source = new DOMSource(doc);
         final FileOutputStream fos = new FileOutputStream(file);
