@@ -73,7 +73,6 @@
       <plugin>
         <groupId>org.jenkins-ci.tools</groupId>
         <artifactId>maven-hpi-plugin</artifactId>
-        <extensions>true</extensions>
         <configuration>
           <compatibleSinceVersion>3.2.0</compatibleSinceVersion>
         </configuration>
