@@ -221,8 +221,8 @@ public class ConnectReleaseWebHookEvent extends AbstractHookEvent {
         AbstractProject project = validateAndGetJenkinsProject(resource);
         String webHookNameToLink = resource.getWebHookName();
 
-        // validate the webhook exists in the server config
-        ReleaseWebHook webHook = validateAndGetReleaseWebHookByName(webHookNameToLink);
+        // validate the webhook exists in the server config (throws if it doesn't)
+        validateAndGetReleaseWebHookByName(webHookNameToLink);
 
         ReleaseWebHookAction action = getReleaseWebHookActionFromProject(project);
 

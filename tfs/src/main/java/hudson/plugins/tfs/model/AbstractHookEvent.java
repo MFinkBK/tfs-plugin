@@ -114,7 +114,6 @@ public abstract class AbstractHookEvent {
             if (project instanceof Job) {
                 final Job job = (Job) project;
                 final int quietPeriod = scmTriggerItem.getQuietPeriod();
-                final String targetUrl = job.getAbsoluteUrl() + job.getNextBuildNumber();
 
                 final ArrayList<ParameterValue> values = getDefaultParameters(job);
                 final String vstsRefspec = getVstsRefspec(gitCodePushedEventArgs);
