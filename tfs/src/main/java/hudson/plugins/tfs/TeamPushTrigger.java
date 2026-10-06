@@ -1,5 +1,6 @@
 package hudson.plugins.tfs;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Extension;
 import hudson.Util;
 import hudson.console.AnnotatedLargeText;
@@ -64,7 +65,11 @@ public class TeamPushTrigger extends Trigger<Job<?, ?>> {
     }
 
     public File getLogFile() {
-        return new File(job.getRootDir(), "team-polling.log");
+        final Job<?, ?> currentJob = job;
+        if (currentJob == null) {
+            throw new IllegalStateException("The trigger has not been started for a job yet.");
+        }
+        return new File(currentJob.getRootDir(), "team-polling.log");
     }
 
     public String getJobContext() {
@@ -134,20 +139,29 @@ public class TeamPushTrigger extends Trigger<Job<?, ?>> {
 
         @Override
         public void run() {
+            final Job<?, ?> currentJob = job;
+            if (currentJob == null) {
+                LOGGER.warning("Ignoring push event: the trigger has not been started for a job yet.");
+                return;
+            }
             boolean shouldSchedule = bypassPolling;
             String changesDetected = "";
             if (!bypassPolling) {
                 // pipeline jobs might have runPolling() returned as false, while still should be scheduled.
                 // we should schedule them as long as they are associated with a valid commit.
                 if (runPolling() || StringUtils.isNotBlank(gitCodePushedEventArgs.commit)) {
-                    changesDetected = "SCM changes detected in " + job.getFullDisplayName() + ". ";
+                    changesDetected = "SCM changes detected in " + currentJob.getFullDisplayName() + ". ";
                     shouldSchedule = true;
                 }
             } else {
-                changesDetected = "Polling bypassed for " + job.getFullDisplayName() + ". ";
+                changesDetected = "Polling bypassed for " + currentJob.getFullDisplayName() + ". ";
             }
             if (shouldSchedule) {
                 final SCMTriggerItem p = job();
+                if (p == null) {
+                    LOGGER.warning("Ignoring push event: " + currentJob.getFullDisplayName() + " does not support SCM triggers.");
+                    return;
+                }
                 final String name = "#" + p.getNextBuildNumber();
                 final String pushedBy = gitCodePushedEventArgs.pushedBy;
 
@@ -248,6 +262,7 @@ public class TeamPushTrigger extends Trigger<Job<?, ?>> {
         * Write log.
         */
         @SuppressWarnings("unused")
+        @SuppressFBWarnings(value = "RV_RETURN_VALUE_IGNORED", justification = "The whole log is written; the end offset is not needed")
         public void writeLogTo(final XMLOutput out) throws IOException {
             final File logFile = getLogFile();
             final AnnotatedLargeText<TeamPollingAction> text =

@@ -12,7 +12,6 @@ import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Notifier;
 import hudson.tasks.Publisher;
 import java.io.IOException;
-import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -25,9 +24,10 @@ import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -36,11 +36,11 @@ import org.kohsuke.stapler.DataBoundConstructor;
  * Implements ReleaseWebhook Post build action.
  * @author Kalyan
  */
-public class ReleaseWebHookAction extends Notifier implements Serializable {
+public class ReleaseWebHookAction extends Notifier {
 
     private static final Logger logger = Logger.getLogger(ReleaseWebHookAction.class.getName());
+    private static final String API_VERSION = "5.0-preview";
     private List<ReleaseWebHookReference> webHookReferences;
-    private final String apiVersion = "5.0-preview";
 
     @DataBoundConstructor
     public ReleaseWebHookAction(final List<ReleaseWebHookReference> webHookReferences) {
@@ -101,12 +101,10 @@ public class ReleaseWebHookAction extends Notifier implements Serializable {
     }
 
     private ReleaseWebHookStatus sendJobCompletedEvent(final JSONObject json, final ReleaseWebHook webHook) throws IOException, NoSuchAlgorithmException, InvalidKeyException {
-        HttpClient client = HttpClientBuilder.create().build();
         final HttpPost request = new HttpPost(webHook.getPayloadUrl());
         final String payload = json.toString();
 
-        request.addHeader("Content-Type", "application/json");
-        request.addHeader("Accept", "application/json; api-version=" + apiVersion);
+        request.addHeader("Accept", "application/json; api-version=" + API_VERSION);
 
         String password = webHook.getSecret().getPlainText();
         if (!StringUtils.isBlank(password)) {
@@ -114,22 +112,26 @@ public class ReleaseWebHookAction extends Notifier implements Serializable {
             request.addHeader("X-Jenkins-Signature", signature);
         }
 
-        request.setEntity(new StringEntity(new String(payload.getBytes("UTF-8"))));
-        final HttpResponse response = client.execute(request);
-        final int statusCode = response.getStatusLine().getStatusCode();
+        // Sends the payload as UTF-8 and sets "Content-Type: application/json; charset=UTF-8"
+        request.setEntity(new StringEntity(payload, ContentType.APPLICATION_JSON));
 
-        ReleaseWebHookStatus status = null;
-        if (statusCode == HttpURLConnection.HTTP_OK) {
-            logger.log(Level.INFO, "sent event payload successfully");
-            status = new ReleaseWebHookStatus(webHook.getPayloadUrl(), statusCode);
-        } else {
-            HttpEntity entity = response.getEntity();
-            String content = EntityUtils.toString(entity);
-            logger.log(Level.WARNING, "Cannot send the event to webhook. Content:" + content);
-            status = new ReleaseWebHookStatus(webHook.getPayloadUrl(), statusCode, content);
+        try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
+            final HttpResponse response = client.execute(request);
+            final int statusCode = response.getStatusLine().getStatusCode();
+            final HttpEntity entity = response.getEntity();
+
+            final ReleaseWebHookStatus status;
+            if (statusCode == HttpURLConnection.HTTP_OK) {
+                EntityUtils.consumeQuietly(entity);
+                logger.log(Level.INFO, "sent event payload successfully");
+                status = new ReleaseWebHookStatus(webHook.getPayloadUrl(), statusCode);
+            } else {
+                final String content = entity != null ? EntityUtils.toString(entity, "UTF-8") : "";
+                logger.log(Level.WARNING, "Cannot send the event to webhook. Content:" + content);
+                status = new ReleaseWebHookStatus(webHook.getPayloadUrl(), statusCode, content);
+            }
+            return status;
         }
-
-        return status;
     }
 
     /**
