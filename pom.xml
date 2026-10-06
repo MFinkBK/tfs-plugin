@@ -10,8 +10,10 @@
   <artifactId>tfs-parent</artifactId>
   <packaging>pom</packaging>
   <name>Team Foundation Server Plug-in parent</name>
-  <version>5.157.2-SNAPSHOT</version>
+  <version>${revision}${versionSuffix}</version>
   <properties>
+    <revision>6.0.0</revision>
+    <versionSuffix>-bittner-krull</versionSuffix>
     <!-- Version is required to be compatible with current Pipeline plugin dependencies -->
     <jenkins.version>2.568.1</jenkins.version>
     <maven.compiler.release>21</maven.compiler.release>
@@ -94,6 +96,31 @@
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+        <version>1.6.0</version>
+        <configuration>
+          <flattenMode>resolveCiFriendliesOnly</flattenMode>
+          <updatePomFile>true</updatePomFile>
+        </configuration>
+        <executions>
+          <execution>
+            <id>flatten</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>flatten</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>flatten-clean</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>clean</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
