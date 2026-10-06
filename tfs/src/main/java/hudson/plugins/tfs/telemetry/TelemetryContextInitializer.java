@@ -7,6 +7,8 @@ import com.microsoft.applicationinsights.extensibility.context.DeviceContext;
 import com.microsoft.applicationinsights.extensibility.context.SessionContext;
 import com.microsoft.applicationinsights.extensibility.context.UserContext;
 import com.microsoft.applicationinsights.telemetry.TelemetryContext;
+import hudson.PluginWrapper;
+import hudson.util.VersionNumber;
 import jenkins.model.Jenkins;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
@@ -25,6 +27,12 @@ import java.util.UUID;
  */
 public class TelemetryContextInitializer implements ContextInitializer {
     private static final Logger logger = LoggerFactory.getLogger(TelemetryContextInitializer.class);
+
+    /**
+     * System property to opt in to sending telemetry to Microsoft Application Insights.
+     * Telemetry is disabled unless this property is set to {@code true}.
+     */
+    public static final String SYS_PROP_TELEMETRY_ENABLED = "hudson.plugins.tfs.telemetry.enabled";
 
     private static final String PRODUCT_NAME = "TFS-Jenkins";
     private static final String SYS_PROP_OS_NAME = "os.name";
@@ -51,8 +59,20 @@ public class TelemetryContextInitializer implements ContextInitializer {
         this.isDeveloperMode = isDeveloperMode;
     }
 
+    /**
+     * Returns whether telemetry has been explicitly enabled via the system property
+     * {@value #SYS_PROP_TELEMETRY_ENABLED}. Telemetry is off by default.
+     */
+    public static boolean isTelemetryEnabled() {
+        return Boolean.getBoolean(SYS_PROP_TELEMETRY_ENABLED);
+    }
+
     @Override
     public void initialize(final TelemetryContext context) {
+        if (!isTelemetryEnabled()) {
+            // Telemetry is disabled: don't set an instrumentation key and don't collect any data
+            return;
+        }
         if (!isInitialized) {
             logger.info("Starting TelemetryContext initialization");
             initializeInstrumentationKey(context, isDeveloperMode);
@@ -76,7 +96,7 @@ public class TelemetryContextInitializer implements ContextInitializer {
                     PRODUCT_NAME,
                     getPluginVersion(),
                     "Jenkins",
-                    Jenkins.getVersion(),
+                    getJenkinsVersion(),
                     getPlatformName(),
                     getPlatformVersion(),
                     getJavaName(),
@@ -149,7 +169,7 @@ public class TelemetryContextInitializer implements ContextInitializer {
         properties.put(PROPERTY_USER_ID, getUserId());
 
         // Get Jenkins version info
-        properties.put(PROPERTY_JENKINS_VERSION, Jenkins.getVersion().toString());
+        properties.put(PROPERTY_JENKINS_VERSION, getJenkinsVersion());
         properties.put(PROPERTY_PLUGIN_VERSION, getPluginVersion());
 
         // Get OS info
@@ -186,11 +206,18 @@ public class TelemetryContextInitializer implements ContextInitializer {
         return getSystemProperty(SYS_PROP_JAVA_VERSION);
     }
 
+    private String getJenkinsVersion() {
+        final VersionNumber version = Jenkins.getVersion();
+        return version != null ? version.toString() : StringUtils.EMPTY;
+    }
+
     private String getPluginVersion() {
-        final Jenkins instance = Jenkins.getInstance();
-        if (instance != null && instance.getPluginManager() != null) {
-            return instance.getPluginManager().getPlugin("tfs").getVersion();
+        final Jenkins instance = Jenkins.getInstanceOrNull();
+        if (instance == null || instance.getPluginManager() == null) {
+            return StringUtils.EMPTY;
         }
-        return StringUtils.EMPTY;
+        // Look up this plugin by class rather than by short name, so a renamed fork still works
+        final PluginWrapper plugin = instance.getPluginManager().whichPlugin(TelemetryContextInitializer.class);
+        return plugin != null ? plugin.getVersion() : StringUtils.EMPTY;
     }
 }

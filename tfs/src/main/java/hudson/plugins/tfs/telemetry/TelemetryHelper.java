@@ -50,6 +50,12 @@ public final class TelemetryHelper {
 
     // The private constructor keeps the class from being inherited or misused
     private TelemetryHelper() {
+        if (!TelemetryContextInitializer.isTelemetryEnabled()) {
+            // Telemetry is opt-in (see TelemetryContextInitializer.SYS_PROP_TELEMETRY_ENABLED).
+            // Without a client, sendEvent/sendMetric/sendException only write a debug log entry.
+            logger.debug("Telemetry is disabled");
+            return;
+        }
         final String skip = System.getProperties().getProperty("hudson.plugins.tfs.telemetry.skipClientInitialization");
         if (StringUtils.isNotEmpty(skip) && StringUtils.equalsIgnoreCase(skip, "true")) {
             // this flag is here for testing purposes in which case we do not want to create a telemetry channel
