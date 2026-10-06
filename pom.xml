@@ -10,7 +10,7 @@
   <artifactId>tfs-parent</artifactId>
   <packaging>pom</packaging>
   <name>Team Foundation Server Plug-in parent</name>
-  <version>${revision}${changelist}</version>
+  <version>${revision}${sha1}${changelist}</version>
   <properties>
     <revision>6.0.0</revision>
     <changelist>-bittner-krull</changelist>
