@@ -10,10 +10,10 @@
   <artifactId>tfs-parent</artifactId>
   <packaging>pom</packaging>
   <name>Team Foundation Server Plug-in parent</name>
-  <version>${revision}${versionSuffix}</version>
+  <version>${revision}${changelist}</version>
   <properties>
     <revision>6.0.0</revision>
-    <versionSuffix>-bittner-krull</versionSuffix>
+    <changelist>-bittner-krull</changelist>
     <!-- Version is required to be compatible with current Pipeline plugin dependencies -->
     <jenkins.version>2.568.1</jenkins.version>
     <maven.compiler.release>21</maven.compiler.release>
