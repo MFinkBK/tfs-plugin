@@ -28,7 +28,6 @@ jobs:
         --file pom.xml
         -Dmaven.javadoc.skip=true
         -Dmaven.test.failure.ignore
-        -Dspotbugs.failOnError=false
         -Dcheckstyle.failOnViolation=false
         -Dcheckstyle.failsOnError=false
         -Dsha1=-$(git rev-parse --short HEAD)
