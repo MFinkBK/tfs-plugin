@@ -6,7 +6,6 @@ import org.junit.Test;
 import org.jvnet.hudson.test.Issue;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.recipes.LocalData;
-import org.junit.Ignore;
 
 public class ChangeLogSetIntegrationTest {
 
@@ -17,7 +16,6 @@ public class ChangeLogSetIntegrationTest {
      * Asserts that the change log links the user who checked in the changeset.
      * @throws Exception thrown if problem
      */
-    @Ignore("Jenkins fails to start with the old @LocalData; re-enable after updating the test data")
     @LocalData
     @Issue("JENKINS-4943")
     @Test
