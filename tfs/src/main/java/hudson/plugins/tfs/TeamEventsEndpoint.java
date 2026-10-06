@@ -28,6 +28,8 @@ import org.kohsuke.stapler.HttpResponse;
 import org.kohsuke.stapler.HttpResponses;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
+import org.kohsuke.stapler.StaplerRequest2;
+import org.kohsuke.stapler.StaplerResponse2;
 import org.kohsuke.stapler.interceptor.RequirePOST;
 
 import javax.annotation.Nonnull;
@@ -287,7 +289,7 @@ public class TeamEventsEndpoint implements UnprotectedRootAction {
          * {@inheritDoc}
          */
         @Override
-        public void addHeaders(StaplerRequest req, StaplerResponse rsp) {
+        public void addHeaders(StaplerRequest2 req, StaplerResponse2 rsp) {
             rsp.addHeader("Triggered", project.getAbsoluteUrl());
         }
 
@@ -319,7 +321,7 @@ public class TeamEventsEndpoint implements UnprotectedRootAction {
          * {@inheritDoc}
          */
         @Override
-        public void addHeaders(StaplerRequest req, StaplerResponse rsp) {
+        public void addHeaders(StaplerRequest2 req, StaplerResponse2 rsp) {
             rsp.addHeader("Triggered", project.getAbsoluteUrl());
         }
 

@@ -9,7 +9,7 @@ import java.util.List;
 import hudson.plugins.tfs.commands.ListWorkspacesCommand;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import hudson.remoting.Callable;

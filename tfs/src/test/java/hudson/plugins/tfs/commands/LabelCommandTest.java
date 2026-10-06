@@ -9,7 +9,7 @@ import hudson.remoting.Callable;
 import ms.tfs.versioncontrol.clientservices._03._LabelResult;
 import ms.tfs.versioncontrol.clientservices._03._LabelResultStatus;
 import org.junit.Test;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 
 import static org.mockito.Mockito.when;
 
@@ -20,9 +20,9 @@ public class LabelCommandTest extends AbstractCallableCommandTest {
         final LabelResult[] labelResults = {labelResult};
 
         when(vcc.createLabel(
-                Matchers.<VersionControlLabel>anyObject(),
-                Matchers.<LabelItemSpec[]>anyObject(),
-                Matchers.<LabelChildOption>anyObject())).thenReturn(labelResults);
+                ArgumentMatchers.<VersionControlLabel>any(),
+                ArgumentMatchers.<LabelItemSpec[]>any(),
+                ArgumentMatchers.<LabelChildOption>any())).thenReturn(labelResults);
 
         final LabelCommand command = new LabelCommand(server, "labelName", "hudson-createLabel-TFS2013", "$/project/path") {
             @Override

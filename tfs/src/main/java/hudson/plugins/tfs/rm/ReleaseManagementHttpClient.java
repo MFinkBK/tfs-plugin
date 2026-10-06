@@ -2,19 +2,22 @@
 package hudson.plugins.tfs.rm;
 
 import com.google.gson.Gson;
+import hudson.ProxyConfiguration;
 import hudson.util.Secret;
 
-import java.nio.charset.Charset;
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -29,16 +32,18 @@ public class ReleaseManagementHttpClient
     private final Secret password;
     private final String accountUrl;
     private final String basicAuth;
-    
+
     ReleaseManagementHttpClient(String accountUrl, String username, Secret password)
     {
         this.accountUrl = accountUrl;
         this.username = username;
         this.password = password;
-        this.httpClient = new HttpClient();
-        this.basicAuth = "Basic " + new String(Base64.encodeBase64((this.username + ":" + Secret.toString(this.password)).getBytes(Charset.defaultCharset())), Charset.defaultCharset());
+        // Uses the proxy configured in Jenkins (Manage Jenkins > System > HTTP Proxy)
+        this.httpClient = ProxyConfiguration.newHttpClient();
+        final String credentials = this.username + ":" + Secret.toString(this.password);
+        this.basicAuth = "Basic " + Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
     }
-    
+
     public List<ReleaseDefinition> GetReleaseDefinitions(String project) throws ReleaseManagementException
     {
         String url = this.accountUrl + project + "/_apis/release/definitions?$expand=artifacts";
@@ -46,13 +51,13 @@ public class ReleaseManagementHttpClient
         DefinitionResponse definitionResponse = new Gson().fromJson(response, DefinitionResponse.class);
         return definitionResponse.getValue();
     }
-    
+
     public String CreateRelease(String project, String body) throws ReleaseManagementException
     {
         String url = this.accountUrl + project + "/_apis/release/releases?api-version=3.0-preview.2";
         return this.ExecutePostmethod(url, body);
     }
-    
+
     public ReleaseArtifactVersionsResponse GetVersions(String project, List<Artifact> artifacts) throws ReleaseManagementException
     {
         String url = this.accountUrl + project + "/_apis/release/artifacts/versions?api-version=3.0-preview.1";
@@ -72,53 +77,61 @@ public class ReleaseManagementHttpClient
             throw new ReleaseManagementException(ex);
         }
     }
-    
+
     private String ExecutePostmethod(String url, String body) throws ReleaseManagementException
     {
-        PostMethod postMethod = new PostMethod(url);
-        postMethod.addRequestHeader("Authorization", this.basicAuth);
-        postMethod.addRequestHeader("Content-Type", "application/json");
-        postMethod.setRequestBody(body);
-        String response;
-        try
-        {
-            int status = this.httpClient.executeMethod(postMethod);
-            response = postMethod.getResponseBodyAsString();
-            if(status >= 300)
-            {
-                throw new ReleaseManagementException("Error occurred.%nStatus: " + status + "%nResponse: " + response + "%n");
-            }
-        }
-        catch(Exception ex)
-        {
-            throw new ReleaseManagementException(ex);
-        }
-        
-        return response;
+        final HttpRequest.Builder builder = newRequestBuilder(url)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body, StandardCharsets.UTF_8));
+        return execute(builder.build());
     }
-    
+
     private String ExecuteGetMethod(String url) throws ReleaseManagementException
     {
-        GetMethod getMethod = new GetMethod(url);
-        getMethod.addRequestHeader("Authorization", this.basicAuth);
-        String response;
+        final HttpRequest.Builder builder = newRequestBuilder(url).GET();
+        return execute(builder.build());
+    }
+
+    private HttpRequest.Builder newRequestBuilder(String url) throws ReleaseManagementException
+    {
         try
         {
-            int status = this.httpClient.executeMethod(getMethod);
-            response = getMethod.getResponseBodyAsString();
-            if(status >= 300)
-            {
-                throw new ReleaseManagementException("Error occurred.%nStatus: " + status + "%nResponse: " + response + "%n");
-            }
+            return HttpRequest.newBuilder(URI.create(url))
+                    .header("Authorization", this.basicAuth);
         }
-        catch(Exception ex)
+        catch (IllegalArgumentException ex)
+        {
+            // invalid URL, e.g. unescaped characters in the project name
+            throw new ReleaseManagementException(ex);
+        }
+    }
+
+    private String execute(HttpRequest request) throws ReleaseManagementException
+    {
+        final HttpResponse<String> httpResponse;
+        try
+        {
+            httpResponse = this.httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        }
+        catch (IOException ex)
         {
             throw new ReleaseManagementException(ex);
         }
-        
+        catch (InterruptedException ex)
+        {
+            Thread.currentThread().interrupt();
+            throw new ReleaseManagementException(ex);
+        }
+
+        final int status = httpResponse.statusCode();
+        final String response = httpResponse.body();
+        if (status >= 300)
+        {
+            throw new ReleaseManagementException("Error occurred.%nStatus: " + status + "%nResponse: " + response + "%n");
+        }
         return response;
     }
-    
+
     private class DefinitionResponse
     {
 
@@ -127,7 +140,7 @@ public class ReleaseManagementHttpClient
         private final Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
         /**
-        * 
+        *
         * @return
         * The count
         */
@@ -137,7 +150,7 @@ public class ReleaseManagementHttpClient
         }
 
         /**
-        * 
+        *
         * @param count
         * The count
         */
@@ -147,7 +160,7 @@ public class ReleaseManagementHttpClient
         }
 
         /**
-        * 
+        *
         * @return
         * The value
         */
@@ -157,7 +170,7 @@ public class ReleaseManagementHttpClient
         }
 
         /**
-        * 
+        *
         * @param value
         * The value
         */

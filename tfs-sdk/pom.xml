@@ -1,36 +1,99 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>tfs-parent</artifactId>
-    <version>5.157.2-SNAPSHOT</version>
+    <version>${revision}${sha1}${changelist}</version>
   </parent>
 
   <artifactId>tfs-sdk</artifactId>
-  <name>TFS SDK installer</name>
-  <packaging>pom</packaging>
+  <name>TFS SDK (repackaged)</name>
+  <description>
+    The Microsoft TFS SDK for Java, without its jar signature and with its bundled
+    third-party libraries relocated so they don't clash with the ones from Jenkins.
+  </description>
+  <packaging>jar</packaging>
 
-  <!-- http://stackoverflow.com/a/31511080/98903 -->
+  <properties>
+    <tfs-sdk.version>14.0.3</tfs-sdk.version>
+    <shaded.prefix>com.microsoft.tfs.shaded</shaded.prefix>
+    <!-- The classes in this module are Microsoft's SDK, not our own code: nothing to check -->
+    <spotbugs.skip>true</spotbugs.skip>
+    <checkstyle.skip>true</checkstyle.skip>
+    <maven.javadoc.skip>true</maven.javadoc.skip>
+    <access-modifier-checker.skip>true</access-modifier-checker.skip>
+  </properties>
+
   <build>
     <plugins>
+      <!-- Unpack the original SDK jar into target/classes, so it becomes this module's own content.
+           The signature files and the original manifest (with its per-file digests) are left out,
+           because the signature becomes invalid once classes are relocated. -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-install-plugin</artifactId>
-        <version>2.5.2</version>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.1.0</version>
         <executions>
           <execution>
-            <id>install.tfs.sdk.jar.locally</id>
-            <phase>validate</phase>
+            <id>unpack-tfs-sdk</id>
+            <phase>process-resources</phase>
             <goals>
-              <goal>install-file</goal>
+              <goal>run</goal>
             </goals>
             <configuration>
-              <file>src/com.microsoft.tfs.sdk-14.0.3.jar</file>
-              <groupId>com.microsoft.tfs.sdk</groupId>
-              <artifactId>com.microsoft.tfs.sdk</artifactId>
-              <version>14.0.3</version>
-              <packaging>jar</packaging>
-              <generatePom>true</generatePom>
+              <target>
+                <unzip src="${project.basedir}/src/com.microsoft.tfs.sdk-${tfs-sdk.version}.jar"
+                       dest="${project.build.outputDirectory}">
+                  <patternset>
+                    <exclude name="META-INF/MANIFEST.MF" />
+                    <exclude name="META-INF/*.SF" />
+                    <exclude name="META-INF/*.RSA" />
+                    <exclude name="META-INF/*.DSA" />
+                    <exclude name="META-INF/*.EC" />
+                  </patternset>
+                </unzip>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Relocate the third-party libraries bundled in the SDK into a private package -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.6.0</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <!-- Only this module's own jar (the unpacked SDK), nothing inherited from the parent POM -->
+              <artifactSet>
+                <includes>
+                  <include>${project.groupId}:${project.artifactId}</include>
+                </includes>
+              </artifactSet>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
+              <relocations>
+                <relocation>
+                  <pattern>com.google.common</pattern>
+                  <shadedPattern>${shaded.prefix}.com.google.common</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.google.thirdparty</pattern>
+                  <shadedPattern>${shaded.prefix}.com.google.thirdparty</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.apache.commons.io</pattern>
+                  <shadedPattern>${shaded.prefix}.org.apache.commons.io</shadedPattern>
+                </relocation>
+              </relocations>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+              </transformers>
             </configuration>
           </execution>
         </executions>

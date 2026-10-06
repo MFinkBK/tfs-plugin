@@ -63,7 +63,13 @@ public final class TeamStatus {
                 .pair("status", status.state.toString())
                 .build());
 
-        addStatus(pullRequestMergeCommitCreatedEventArgs, status);
+        // Pull request builds report on the pull request (and its merge commit);
+        // plain push builds only have the pushed commit.
+        if (pullRequestMergeCommitCreatedEventArgs != null) {
+            addStatus(pullRequestMergeCommitCreatedEventArgs, status);
+        } else {
+            addStatus(gitCodePushedEventArgs, status);
+        }
     }
 
     /**
@@ -75,7 +81,7 @@ public final class TeamStatus {
         addStatus(pullRequestMergeCommitCreatedEventArgs, status);
     }
 
-    private static void addStatus(final PullRequestMergeCommitCreatedEventArgs gitCodePushedEventArgs, final TeamGitStatus status) throws IOException {
+    private static void addStatus(@Nonnull final GitCodePushedEventArgs gitCodePushedEventArgs, final TeamGitStatus status) throws IOException {
         final PullRequestMergeCommitCreatedEventArgs pullRequestMergeCommitCreatedEventArgs;
 
         if (gitCodePushedEventArgs instanceof PullRequestMergeCommitCreatedEventArgs) {

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+  <!-- Public fields are used for JSON (de)serialization and persisted configuration -->
+  <Match>
+    <Bug pattern="PA_PUBLIC_PRIMITIVE_ATTRIBUTE" />
+  </Match>
+</FindBugsFilter>

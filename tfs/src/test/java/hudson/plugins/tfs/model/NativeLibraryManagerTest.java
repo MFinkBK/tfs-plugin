@@ -3,12 +3,12 @@ package hudson.plugins.tfs.model;
 import com.microsoft.tfs.core.persistence.PersistenceStore;
 import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import static org.mockito.Matchers.isA;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -59,6 +59,6 @@ public class NativeLibraryManagerTest {
 
         NativeLibraryManager.extractFiles(extractor);
 
-        verify(extractor, times(82)).extractFile(isA(String.class), Matchers.<String>anyObject(), isA(String.class));
+        verify(extractor, times(82)).extractFile(isA(String.class), ArgumentMatchers.<String>any(), isA(String.class));
     }
 }

@@ -26,9 +26,10 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.jvnet.hudson.test.Bug;
+import org.jvnet.hudson.test.Issue;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.hamcrest.MockitoHamcrest;
 
 public class CheckoutActionTest {
 
@@ -40,13 +41,17 @@ public class CheckoutActionTest {
     private @Mock Workspace workspace;
     private @Mock Project project;
     private @Mock TaskListener taskListener;
+    private AutoCloseable mocks;
 
     @Before public void setup() throws Exception {
-        MockitoAnnotations.initMocks(this);
+        mocks = MockitoAnnotations.openMocks(this);
         hudsonWs = Util.createTempFilePath();
     }
 
     @After public void teardown() throws Exception {
+        if (mocks != null) {
+            mocks.close();
+        }
         if (hudsonWs != null) {
             hudsonWs.deleteRecursive();
         }
@@ -233,7 +238,7 @@ public class CheckoutActionTest {
         assertEquals("The list from the detailed history, was not the same as returned from checkout", list, actualList);
         
         final DateVersionSpec startDateVersionSpec = new DateVersionSpec(startDate);
-        verify(project).getDetailedHistoryWithoutCloakedPaths(argThat(new DateVersionSpecMatcher(startDateVersionSpec)), isA(VersionSpec.class), eq(EMPTY_CLOAKED_PATHS_LIST));
+        verify(project).getDetailedHistoryWithoutCloakedPaths(MockitoHamcrest.argThat(new DateVersionSpecMatcher(startDateVersionSpec)), isA(VersionSpec.class), eq(EMPTY_CLOAKED_PATHS_LIST));
     }
     
     @Test
@@ -289,7 +294,7 @@ public class CheckoutActionTest {
         assertEquals("The TFS workspace path was cleaned", 1, hudsonWs.list((FileFilter)null).size());
     }
     
-    @Bug(3882)
+    @Issue("JENKINS-3882")
     @Test
     public void assertCheckoutBySingleVersionSpecDeletesWorkspaceAtStartIfNotUsingUpdate() throws Exception {
         prepareCommonMocks();
@@ -309,7 +314,7 @@ public class CheckoutActionTest {
         verifyNoMoreInteractions(workspaces);
     }
     
-    @Bug(3882)
+    @Issue("JENKINS-3882")
     @Test
     public void assertCheckoutDeletesWorkspaceAtStartIfNotUsingUpdate() throws Exception {
         prepareCommonMocks();
@@ -329,7 +334,7 @@ public class CheckoutActionTest {
         verifyNoMoreInteractions(workspaces);
     }
     
-    @Bug(3882)
+    @Issue("JENKINS-3882")
     @Test
     public void assertCheckoutDoesNotDeleteWorkspaceAtStartIfUsingUpdate() throws Exception {
         prepareCommonMocks();
@@ -345,7 +350,7 @@ public class CheckoutActionTest {
         verifyNoMoreInteractions(workspaces);
     }
     
-    @Bug(3882)
+    @Issue("JENKINS-3882")
     @Test
     public void assertCheckoutBySingleVersionSpecDoesNotDeleteWorkspaceAtStartIfUsingUpdate() throws Exception {
         prepareCommonMocks();
@@ -361,7 +366,7 @@ public class CheckoutActionTest {
         verifyNoMoreInteractions(workspaces);
     }
     
-    @Bug(3882)
+    @Issue("JENKINS-3882")
     @Test
     public void assertCheckoutDoesNotDeleteWorkspaceIfNotUsingUpdateAndThereIsNoWorkspace() throws Exception {
         prepareCommonMocks();
@@ -378,7 +383,7 @@ public class CheckoutActionTest {
         verifyNoMoreInteractions(workspaces);
     }
     
-    @Bug(3882)
+    @Issue("JENKINS-3882")
     @Test
     public void assertCheckoutBySingleVersionSpecDoesNotDeleteWorkspaceIfNotUsingUpdateAndThereIsNoWorkspace() throws Exception {
         prepareCommonMocks();
@@ -395,7 +400,7 @@ public class CheckoutActionTest {
         verifyNoMoreInteractions(workspaces);
     }
     
-    @Bug(6596)
+    @Issue("JENKINS-6596")
     @Test
     public void assertCheckoutOnlyRetrievesChangesToTheStartTimestampForCurrentBuild() throws Exception {
         List<ChangeSet> list = new ArrayList<ChangeSet>();
@@ -414,8 +419,8 @@ public class CheckoutActionTest {
         final DateVersionSpec startDateVersionSpec = new DateVersionSpec(startDate);
         final DateVersionSpec endDateVersionSpec = new DateVersionSpec(endDate);
         verify(project).getDetailedHistoryWithoutCloakedPaths(
-                argThat(new DateVersionSpecMatcher(startDateVersionSpec)),
-                argThat(new DateVersionSpecMatcher(endDateVersionSpec)),
+                MockitoHamcrest.argThat(new DateVersionSpecMatcher(startDateVersionSpec)),
+                MockitoHamcrest.argThat(new DateVersionSpecMatcher(endDateVersionSpec)),
                 eq(EMPTY_CLOAKED_PATHS_LIST));
         verify(project).getFiles(isA(String.class), eq("D2009-09-24T00:00:00Z"), eq(false));
     }
@@ -429,6 +434,7 @@ public class CheckoutActionTest {
             this.base = base;
         }
 
+        @Override
         public boolean matches(final Object item) {
             if (base == null) {
                 return item == null;

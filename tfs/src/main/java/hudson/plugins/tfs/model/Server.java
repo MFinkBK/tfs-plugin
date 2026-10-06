@@ -226,10 +226,16 @@ public class Server implements ServerConfigurationProvider, Closable {
     }
 
     public <T, E extends Exception> T execute(final Callable<T, E> callable) {
+        // checked before the try block, so the clear message isn't wrapped in a RuntimeException
+        if (launcher == null) {
+            throw new IllegalStateException("Cannot run the TFS command: no launcher is available.");
+        }
+        final VirtualChannel channel = launcher.getChannel();
+        if (channel == null) {
+            throw new IllegalStateException("Cannot run the TFS command: the agent is offline.");
+        }
         try {
-            final VirtualChannel channel = launcher.getChannel();
-            final T result = channel.call(callable);
-            return result;
+            return channel.call(callable);
         } catch (final Exception e) {
             // convert from checked to unchecked exception
             throw new RuntimeException(e);

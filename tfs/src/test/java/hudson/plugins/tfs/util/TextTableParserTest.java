@@ -5,7 +5,7 @@ import static org.junit.Assert.*;
 import java.io.StringReader;
 
 import org.junit.Test;
-import org.jvnet.hudson.test.Bug;
+import org.jvnet.hudson.test.Issue;
 
 
 public class TextTableParserTest {
@@ -21,7 +21,7 @@ public class TextTableParserTest {
         assertEquals("The column count was incorrect", 3, listParser.getColumnCount());
     }
     
-    @Bug(4666)
+    @Issue("JENKINS-4666")
     @Test public void assertDashInTextIsIgnored() throws Exception {
         TextTableParser listParser = new TextTableParser(new StringReader("Server: server-name\n" +
                 "----- -- ------\n"));

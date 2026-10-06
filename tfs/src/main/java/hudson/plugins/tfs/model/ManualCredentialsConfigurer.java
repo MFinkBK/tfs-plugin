@@ -5,6 +5,7 @@ import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredenti
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import hudson.Extension;
+import hudson.model.Descriptor;
 import hudson.util.Secret;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -37,14 +38,18 @@ public class ManualCredentialsConfigurer extends CredentialsConfigurer {
 
     @Override
     public StandardUsernamePasswordCredentials getCredentials(final String collectionUri) {
-        final StandardUsernamePasswordCredentials credentials = new UsernamePasswordCredentialsImpl(
-                CredentialsScope.GLOBAL,
-                null,
-                null,
-                this.userName,
-                this.password.getPlainText()
-        );
-        return credentials;
+        try {
+            return new UsernamePasswordCredentialsImpl(
+                    CredentialsScope.GLOBAL,
+                    null,
+                    null,
+                    this.userName,
+                    this.password.getPlainText()
+            );
+        } catch (final Descriptor.FormException e) {
+            // thrown e.g. in FIPS mode when the password does not meet the requirements
+            throw new IllegalArgumentException("Could not create credentials: " + e.getMessage(), e);
+        }
     }
 
     /**
