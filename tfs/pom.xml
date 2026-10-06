@@ -16,6 +16,8 @@
     <!-- TODO: enable once SpotBugs issues are fixed (FindBugs was replaced by SpotBugs in the plugin parent) -->
     <spotbugs.failOnError>false</spotbugs.failOnError>
     <checkstyle.skip>true</checkstyle.skip>
+    <!-- Workaround: the plugin still uses Digester3, which brings in some extra libraries; just list them here instead of rewriting code using javax.xml.parsers -->
+    <hpi.bundledArtifacts>asm,cglib,commons-beanutils,commons-digester3,tfs-sdk</hpi.bundledArtifacts>
   </properties>
 
   <licenses>
